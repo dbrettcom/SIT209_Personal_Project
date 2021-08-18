@@ -1,22 +1,10 @@
 $('#navbar').load('navbar.html');
 $('#footer').load('footer.html');
 
+const MQTT_URL = 'http://localhost:5001/send-command';
 const API_URL = 'http://localhost:5000/api';
 
-$.get(`${API_URL}/devices`)
-.then(response => {
-  response.forEach(device => {
-    $('#devices tbody').append(`
-      <tr>
-        <td>${device.user}</td>
-        <td>${device.name}</td>
-      </tr>`
-    );
-  });
-})
-.catch(error => {
-  console.error(`Error: ${error}`);
-});
+//Devices
 
 $('#add-device').on('click', () => {
   const name = $('#name').val();
@@ -31,9 +19,35 @@ $('#add-device').on('click', () => {
 
   $.post(`${API_URL}/devices`, body)
   .then(response => {
-    location.href = '/';
+    location.href = '/device-list';
   })
   .catch(error => {
     console.error(`Error: ${error}`);
   });
 });
+
+$.get(`${API_URL}/devices`)
+.then(response => {
+  response.forEach(device => {
+    $('#devices tbody').append(`
+      <tr>
+        <td>${device.name}</td>
+        <td>${device.user}</td>
+        <td style="padding-left:30px;">${device.sensorData[device.sensorData.length - 1].temp} °C</td>
+        <td>${device.sensorData[device.sensorData.length - 1].loc.lat}</td>
+        <td>${device.sensorData[device.sensorData.length - 1].loc.lon}</td>
+      </tr>`
+    );
+  });
+})
+.catch(error => {
+  console.error(`Error: ${error}`);
+});
+
+$('#send-command').on('click', function() {
+  const deviceId = $('#deviceId').val();
+  $.post(MQTT_URL, { deviceId })
+  .then(response => {
+  location.href = '/device-list';
+      })
+      });
