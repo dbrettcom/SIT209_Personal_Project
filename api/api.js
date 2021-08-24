@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 const express = require('express');
 
-mongoose.connect('mongodb+srv://daniel:mongo@cluster0.cy5m2.mongodb.net/mydb', {useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect('mongodb+srv://daniel:mongo@cluster0.cy5m2.mongodb.net/mydb', {useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false });
 
-const Light = require('./models/light'); 
+const Light = require('./models/light');
 const Device = require('./models/device');
+const Temp = require('./models/temp');
 
 const app = express();
 
@@ -20,16 +21,10 @@ app.use(function(req, res, next) {
 
 const port = 5000;
 
-//app.get
+//GET Requests
 
 app.get('/api/test', (req, res) => {
   res.send('The API is working!');
-});
-
-app.get('/api/devices', (req, res) => {
-  Device.find({}, (err, devices) => {
-    return res.send(devices);
-  });
 });
 
 app.get('/api/devices', (req, res) => {
@@ -42,19 +37,43 @@ app.get('/api/devices', (req, res) => {
 
 app.get('/api/lights', (req, res) => {
   Light.find({}, (err, lights) => {
-    return res.send(lights);
-  });
-});
-
-app.get('/api/lights', (req, res) => {
-  Light.find({}, (err, lights) => {
    return err
      ? res.send(err)
      : res.send(lights);
   });
 });
 
-// app.post
+app.get('/api/temps', (req, res) => {
+  Temp.find({}, (err, temps) => {
+   return err
+     ? res.send(err)
+     : res.send(temps);
+  });
+});
+
+// DELETE Request
+app.delete('/api/devices/:id', (req, res) => {
+  Device.findByIdAndRemove(req.params.id, function(err, deletedDevice){
+    if(err){
+      res.send("Error deleting device");
+    }else{
+      res.json(deletedDevice);
+    }
+  });
+});
+
+app.delete('/api/lights/:id', (req, res) => {
+  console.log(`Deleting the Light`);
+  Light.findByIdAndRemove(req.params.id, function(err, deletedLight){
+    if(err){
+      res.send("Error deleting device");
+    }else{
+      res.json(deletedLight);
+    }
+  });
+});
+
+// POST Requests
 
 app.post('/api/devices', (req, res) => {
   const { name, user, sensorData } = req.body;
@@ -63,17 +82,17 @@ app.post('/api/devices', (req, res) => {
     user,
     sensorData
   });
+
   newDevice.save(err => {
     return err
       ? res.send(err)
       : res.send('successfully added device and data');
-  });
+    });
 });
 
 app.post('/api/lights', (req, res) => {
-  const { idNum, building, room, watt, voltage, lum } = req.body;
+  const { building, room, watt, voltage, lum } = req.body;
   const newLight = new Light({
-    idNum,
     building,
     room,
     watt,
@@ -84,32 +103,6 @@ app.post('/api/lights', (req, res) => {
     return err
       ? res.send(err)
       : res.send('successfully added light and data');
-  });
-});
-
-// app.delete
-
-app.delete('/api/devices', (req, res) => {
-  const {name} = req.body;
-  const newDevice = new Device({
-    name
-  });
-  newDevice.delete(err => {
-    return err
-      ? res.send(err)
-      : res.send('Successfully deleted device and data');
-  });
-});
-
-app.delete('/api/lights', (req, res) => {
-  const {building} = req.body;
-  const newLight = new Light({
-    building
-  });
-  newLight.delete(err => {
-    return err
-      ? res.send(err)
-      : res.send('Successfully deleted light and data');
   });
 });
 
@@ -131,6 +124,31 @@ app.post('/api/devices', (req, res) => {
   console.log(req.body);
 });
 
-app.post('/api/lights', (req, res) => {
-  console.log(req.body);
+
+// PUT requests
+
+app.put('/api/devices', (req, res) => {
+  const {deviceId} = body;
+  const body = {
+    deviceId
+  };
+  body.save(err => {
+    return err
+      ? res.send(err)
+      : res.send('successfully generated new device data');
+  });
+});
+
+
+// Wait until connection is established
+mongoose.connection.on('open', function(err, temps){
+  console.log("connection to MongoDB established");
+
+  mongoose.connection.db.collection('temps', function(err, temp) {
+      if(err) return console.log(err);
+      temp.find().each(function(err, temp) {
+          if(err) return console.err(err);
+          console.log(temp);
+      })
+  });
 });

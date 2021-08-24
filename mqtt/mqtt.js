@@ -42,6 +42,12 @@ client.on('connect', () => {
  console.log('mqtt connected for light data');
 });
 
+// Subscribes the MQTT app to the /sensorData topic
+client.on('connect', () => {
+  client.subscribe('/tempData');
+ console.log('mqtt connected for temp data');
+});
+
 // Turns the string into a JSON object and saves it to the device collection of the database
 client.on('message', (topic, message) => {
   if (topic == '/sensorData') {
@@ -66,29 +72,6 @@ client.on('message', (topic, message) => {
   }
 });
 
-// Turns the string into a JSON object and saves it to the device collection of the database
-client.on('message', (topic, message) => {
-  if (topic == '/lightData') {
-    const data = JSON.parse(message);
-
-    Light.findOne({"building": data.lightId }, (err, light) => {
-      if (err) {
-        console.log(err)
-      }
-      const { lightData } = light;
-      const { voltage, lum } = data;
-
-      lightData.push({ voltage, lum });
-      light.lightData = lightData;
-
-      light.save(err => {
-        if (err) {
-          console.log(err)
-        }
-      });
-    });
-  }
-});
 
 // PUT endpoint for /sensor-data
 app.put('/sensor-data', (req, res) => {
@@ -109,37 +92,46 @@ app.put('/sensor-data', (req, res) => {
   });
 });
 
-// PUT endpoint for /lightSensor-data
-app.put('/lightSensor-data', (req, res) => {
-  const { lightId }  = req.body;
+// Turns the string into a JSON object and saves it to the temp collection of the database
+client.on('message', (topic, message) => {
+  if (topic == '/tempData') {
+    const data = JSON.parse(message);
 
-  const voltage = 240;
-  min = Math.ceil(500);
-  max = Math.floor(1000);
-  lum = Math.floor(Math.random() * (max - min + 1) + min);
+    Light.findOne({"temp": data.temp }, (err, temp) => {
+      if (err) {
+        console.log(err)
+      }
+      const { tempData } = temp;
 
-  const topic = `/lightData`;
-  const message = JSON.stringify({ lightId, voltage, lum });
+      tempData.push({ temp });
+      temp.tempData = tempData;
 
-  client.publish(topic, message, () => {
+      temp.save(err => {
+        if (err) {
+          console.log(err)
+        }
+      });
+    });
+  }
+});
+
+
+
+// POST endpoint
+app.post('/send-command', (req, res) => {
+  const { deviceId, command }  = req.body;
+  const topic = `/myid/command/${deviceId}`;
+  client.publish(topic, command, () => {
     res.send('published new message');
   });
 });
 
-// POST endpoint
-app.post('/send-command', (req, res) => {
-    const { deviceId, command }  = req.body;
-    const topic = `/myid/command/${deviceId}`;
-    client.publish(topic, command, () => {
-      res.send('published new message');
-    });
-  });
 
-// POST endpoint
-app.post('/send-command', (req, res) => {
-  const { lightId, command }  = req.body;
-  const topic = `/myid/command/${lightId}`;
-  client.publish(topic, command, () => {
+// DELETE endpoint
+app.delete('/devices/:id', (req, res) => {
+  const { _id }  = req.body;
+  const topic = `/myid/command/${_id}`;
+  client.delete(_id, () => {
     res.send('published new message');
   });
 });
@@ -147,4 +139,3 @@ app.post('/send-command', (req, res) => {
 app.listen(port, () => {
   console.log(`listening on port ${port}`);
 });
-

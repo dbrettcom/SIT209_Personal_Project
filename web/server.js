@@ -30,6 +30,22 @@ app.get('/remove-device', (req, res) => {
 
 //Lights Tabs
 
+app.get('/north-lights', (req, res) => {
+  res.sendFile(`${base}/north-lights.html`);
+});
+
+app.get('/east-lights', (req, res) => {
+  res.sendFile(`${base}/east-lights.html`);
+});
+
+app.get('/west-lights', (req, res) => {
+  res.sendFile(`${base}/west-lights.html`);
+});
+
+app.get('/south-lights', (req, res) => {
+  res.sendFile(`${base}/south-lights.html`);
+});
+
 app.get('/light-list', (req, res) => {
   res.sendFile(`${base}/light-list.html`);
 });
@@ -40,6 +56,10 @@ app.get('/room-light', (req, res) => {
 
 app.get('/register-light', (req, res) => {
   res.sendFile(`${base}/register-light.html`);
+});
+
+app.get('/remove-light', (req, res) => {
+  res.sendFile(`${base}/remove-light.html`);
 });
 
 

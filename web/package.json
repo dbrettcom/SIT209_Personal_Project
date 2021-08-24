@@ -1,18 +1,20 @@
 {
   "name": "web",
   "version": "1.0.0",
-  "description": "A web interface to view IoT data",
+  "type": "commonjs",
+  "description": "",
   "main": "server.js",
   "scripts": {
-  "test": "echo \"Error: no test specified\" && exit 1",
-  "start": "nodemon server.js"  
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
   },
-  "author": "Daniel Brett",
+  "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "requirejs": "^2.3.6"
   },
   "devDependencies": {
-    "nodemon": "^2.0.12"
+    "nodemon": "^2.0.9"
   }
 }
